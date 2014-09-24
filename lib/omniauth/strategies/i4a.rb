@@ -15,7 +15,7 @@ module OmniAuth
 
       uid { member_data[member_columns.find_index('ID')] }
 
-      name {'bcom'}
+      name {'i4a'}
 
       info do
         {
