@@ -8,6 +8,7 @@ module OmniAuth
         authorize_url: '/custom/bluesky.cfm',
         authenticate_url: '/i4a/api/authenticate',
         user_info_url: '/i4a/api/json/view.ams_contactInformation_memberType',
+        custom_user_info_url: '/i4a/api/json/view.All Contacts',
         username: 'MUST BE SET',
         password: 'MUST BE SET',
         authentication_token: '12345678-1234-1234-1234567890123456'
@@ -19,10 +20,13 @@ module OmniAuth
 
       info do
         {
+          ardms_number: user_ardms_number,
+          cci_number: user_cci_number,
           first_name: member_data[member_columns.find_index('FIRSTNAME')],
           last_name: member_data[member_columns.find_index('LASTNAME')],
           email: member_data[member_columns.find_index('EMAIL')],
-          is_member: is_member
+          is_member: is_member,
+          member_type: member_type
         }
       end
 
@@ -94,8 +98,26 @@ module OmniAuth
         end
       end
 
+      def is_member
+        !member_data[member_columns.find_index('MEMBERTYPEID')].nil? &&
+          member_data[member_columns.find_index('MEMBERTYPEID')] > 0 &&
+          Date.parse(member_data[member_columns.find_index('PAIDTHRU')]) >= Date.today
+      end
+
+      def member_columns
+        raw_info['COLUMNS']
+      end
+
+      def member_data
+        @member_data ||= raw_info['DATA'].flatten
+      end
+
       def member_id
         request.params['memberID']
+      end
+
+      def member_type
+        member_data[member_columns.find_index('MEMBERTYPE')]
       end
 
       def password
@@ -110,18 +132,12 @@ module OmniAuth
         "#{options.client_options.site}#{options.client_options.user_info_url}"
       end
 
-      def is_member
-        !member_data[member_columns.find_index('MEMBERTYPEID')].nil? &&
-          member_data[member_columns.find_index('MEMBERTYPEID')] > 0 &&
-          Date.parse(member_data[member_columns.find_index('PAIDTHRU')]) >= Date.today
+      def user_ardms_number
+        member_data[member_columns.find_index('C_USER_ARDMS')]
       end
 
-      def member_columns
-        raw_info['COLUMNS']
-      end
-
-      def member_data
-        @member_data ||= raw_info['DATA'].flatten
+      def user_cci_number
+        member_data[member_columns.find_index('C_USER_CCI')]
       end
     end
   end
