@@ -24,7 +24,7 @@ module OmniAuth
           first_name: member_data[member_columns.find_index('FIRSTNAME')],
           last_name: member_data[member_columns.find_index('LASTNAME')],
           email: member_data[member_columns.find_index('EMAIL')],
-          is_member: is_member,
+          is_active_member: is_active_member,
           member_type: member_type
         }
       end
@@ -97,10 +97,9 @@ module OmniAuth
         end
       end
 
-      def is_member
-        !member_data[member_columns.find_index('MEMBERTYPEID')].nil? &&
-          member_data[member_columns.find_index('MEMBERTYPEID')] > 0 &&
-          Date.parse(member_data[member_columns.find_index('PAIDTHRU')]) >= Date.today
+      def is_active_member
+        !member_data[member_columns.find_index('MEMBERTYPE')].nil? &&
+          Date.parse(member_data[member_columns.find_index('PAIDTHRU')]) >= (Date.today - 60.days)
       end
 
       def member_columns
