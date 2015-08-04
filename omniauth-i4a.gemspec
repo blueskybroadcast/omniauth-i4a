@@ -6,8 +6,8 @@ require 'omniauth-i4a/version'
 Gem::Specification.new do |spec|
   spec.name          = "omniauth-i4a"
   spec.version       = Omniauth::I4a::VERSION
-  spec.authors       = ["Eugene Correia"]
-  spec.email         = ["ecorreia@blueskybroadcast.com"]
+  spec.authors       = ["Eugene Correia", "Timm Liu"]
+  spec.email         = ["ecorreia@blueskybroadcast.com", "tliu@blueskybroadcast.com"]
   spec.summary       = %q{I4A Omniauth Gem}
   spec.description   = %q{I4A Ominauth gem using oauth2 specs}
   spec.homepage      = ""
