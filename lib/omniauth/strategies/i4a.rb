@@ -29,6 +29,7 @@ module OmniAuth
           member_type: member_type
         }
         params.merge!(svu_custom_params) if account_id.to_i == SVU_ACCOUNT_ID
+        params
       end
 
       extra do
