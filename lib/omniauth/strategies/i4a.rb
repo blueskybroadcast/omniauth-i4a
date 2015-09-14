@@ -126,7 +126,7 @@ module OmniAuth
       end
 
       def svu_client?
-        options.client_options.account_id == options.client_options.svu_account_id
+        options.client_options.account_id.to_i == options.client_options.svu_account_id.to_i
       end
 
       def svu_custom_params
