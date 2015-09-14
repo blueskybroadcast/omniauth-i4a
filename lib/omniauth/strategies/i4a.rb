@@ -3,11 +3,10 @@ require 'omniauth-oauth2'
 module OmniAuth
   module Strategies
     class I4a < OmniAuth::Strategies::OAuth2
-      SVU_ACCOUNT_ID = 112
-
       option :client_options, {
         site: 'https://i4a.org',
         account_id: 'MUST BE SET',
+        svu_account_id: 'MUST BE SET',
         authorize_url: '/custom/bluesky.cfm',
         authenticate_url: '/i4a/api/authenticate',
         user_info_url: '/i4a/api/json/view.ams_contactInformation_memberType',
@@ -29,7 +28,7 @@ module OmniAuth
           is_active_member: is_active_member,
           member_type: member_type
         }
-        params.merge!(svu_custom_params) if account_id.to_i == SVU_ACCOUNT_ID
+        params.merge!(svu_custom_params) if svu_client?
         params
       end
 
@@ -79,10 +78,6 @@ module OmniAuth
 
       private
 
-      def account_id
-        options.client_options.account_id
-      end
-
       def authenticate
         Typhoeus.get("#{authenticate_url}/#{username}/#{password}/#{authentication_token}")
       end
@@ -128,6 +123,10 @@ module OmniAuth
 
       def password
         options.client_options.password
+      end
+
+      def svu_client?
+        options.client_options.account_id == options.client_options.svu_account_id
       end
 
       def svu_custom_params
