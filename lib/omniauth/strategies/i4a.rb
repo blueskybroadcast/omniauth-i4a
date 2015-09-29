@@ -23,8 +23,8 @@ module OmniAuth
         params = {
           first_name: member_data[member_columns.find_index('FIRSTNAME')],
           last_name: member_data[member_columns.find_index('LASTNAME')],
-          email: member_data[member_columns.find_index('EMAIL')],
-          username: member_data[member_columns.find_index('ID')],
+          email: trim_whitespaces(member_data[member_columns.find_index('EMAIL')]),
+          username: trim_whitespaces(member_data[member_columns.find_index('ID')]),
           is_active_member: is_active_member,
           member_type: member_type
         }
@@ -123,6 +123,10 @@ module OmniAuth
 
       def password
         options.client_options.password
+      end
+
+      def trim_whitespaces(data)
+        data.strip
       end
 
       def svu_client?
