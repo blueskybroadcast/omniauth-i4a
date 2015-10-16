@@ -101,8 +101,11 @@ module OmniAuth
       end
 
       def is_active_member
-        !member_data[member_columns.find_index('MEMBERTYPE')].nil? &&
-          Date.parse(member_data[member_columns.find_index('PAIDTHRU')]) >= (Date.today - 60.days)
+        return false if member_data[member_columns.find_index('MEMBERTYPE')].nil? ||
+          member_data[member_columns.find_index('MEMBERTYPE')].downcase == 'null' ||
+          member_data[member_columns.find_index('PAIDTHRU')].downcase == 'null' ||
+          !(Date.parse(member_data[member_columns.find_index('PAIDTHRU')]) >= (Date.today - 60.days))
+        true
       end
 
       def member_columns
