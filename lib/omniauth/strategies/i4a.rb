@@ -24,7 +24,7 @@ module OmniAuth
           first_name: member_data[member_columns.find_index('FIRSTNAME')],
           last_name: member_data[member_columns.find_index('LASTNAME')],
           email: trim_whitespaces(member_data[member_columns.find_index('EMAIL')]),
-          username: trim_whitespaces(member_data[member_columns.find_index('ID')]),
+          username: trim_whitespaces(member_data[member_columns.find_index('ID')].to_s),
           is_active_member: is_active_member,
           member_type: member_type
         }
