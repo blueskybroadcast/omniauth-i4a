@@ -18,24 +18,24 @@ module OmniAuth
         authentication_token: '12345678-1234-1234-1234567890123456'
       }
 
-      uid { user_data[:id] }
+      uid { user_data['id'] }
 
       name { 'i4a' }
 
       info do
         params = {
-          first_name: user_data[:firstname],
-          last_name: user_data[:lastname],
-          email: user_data[:email],
-          username: user_data[:id],
-          is_active_member: is_active_member,
-          member_type: user_data[:membertype],
-          contact_id: user_data[:contactid],
-          date_joined: user_data[:datejoined],
-          date_renewed: user_data[:daterenewed],
-          paid_thru: user_data[:paidthru],
-          contact_type_data: contact_type_data,
-          meeting_attendance_data: meeting_attendance_data
+          'first_name' => user_data['firstname'],
+          'last_name' => user_data['lastname'],
+          'email' => user_data['email'],
+          'username' => user_data['id'],
+          'is_active_member' => is_active_member,
+          'member_type' => user_data['membertype'],
+          'contact_id' => user_data['contactid'],
+          'date_joined' => user_data['datejoined'],
+          'date_renewed' => user_data['daterenewed'],
+          'paid_thru' => user_data['paidthru'],
+          'contact_type_data' => contact_type_data,
+          'meeting_attendance_data' => meeting_attendance_data
         }
         params.merge!(svu_custom_params) if svu_client?
         params
@@ -50,7 +50,7 @@ module OmniAuth
         if member_id
           response = authenticate
           if response.success?
-            self.access_token = { :token => JSON.parse(response.body)['authkey'] }
+            self.access_token = { 'token' => JSON.parse(response.body)['authkey'] }
             self.env['omniauth.auth'] = auth_hash
             self.env['omniauth.origin'] = '/' + request.params['slug']
             call_app!
@@ -63,7 +63,7 @@ module OmniAuth
       end
 
       def auth_hash
-        hash = AuthHash.new(:provider => name, :uid => uid)
+        hash = AuthHash.new('provider' => name, 'uid' => uid)
         hash.info = info
         hash.credentials = self.access_token
         hash
@@ -91,7 +91,7 @@ module OmniAuth
         end
         flat_data = {}
         data.each_with_index do |val, idx|
-          flat_data[columns[idx].downcase.to_sym] = val.to_s.strip
+          flat_data[columns[idx].downcase] = val.to_s.strip
         end
         flat_data
       end
@@ -111,7 +111,7 @@ module OmniAuth
       end
 
       def token
-        access_token[:token]
+        access_token['token']
       end
 
       # Contact Type related methods
@@ -145,10 +145,10 @@ module OmniAuth
       end
 
       def is_active_member
-        return false if user_data[:membertype].nil? ||
-          user_data[:membertype].downcase == 'null' ||
-          user_data[:paidthru].downcase == 'null' ||
-          !(Date.parse(user_data[:paidthru]) >= (Date.today - 60.days))
+        return false if user_data['membertype'].nil? ||
+          user_data['membertype'].downcase == 'null' ||
+          user_data['paidthru'].downcase == 'null' ||
+          !(Date.parse(user_data['paidthru']) >= (Date.today - 60.days))
         true
       end
 
@@ -161,7 +161,7 @@ module OmniAuth
       end
 
       def svu_custom_params
-        { ardms_number: user_data[:c_user_ardms], cci_number: user_data[:c_user_ardms] }
+        { 'ardms_number' => user_data['c_user_ardms'], 'cci_number' => user_data['c_user_ardms'] }
       end
     end
   end
