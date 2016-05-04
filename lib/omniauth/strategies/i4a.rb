@@ -6,6 +6,7 @@ module OmniAuth
     class I4a < OmniAuth::Strategies::OAuth2
       option :client_options, {
         site: 'https://i4a.org',
+        enable_credits: false,
         account_id: 'MUST BE SET',
         svu_account_id: 'MUST BE SET',
         authorize_url: '/custom/bluesky.cfm',
@@ -117,6 +118,7 @@ module OmniAuth
       # Contact Type related methods
 
       def contact_type_data
+        return [] unless options.client_options.enable_credits
         @contact_type_data ||= fetch_data(contact_type_data_url)
       end
 
@@ -127,6 +129,7 @@ module OmniAuth
       # Meeting Attendance related methods
 
       def meeting_attendance_data
+        return [] unless options.client_options.enable_credits
         @meeting_attendance_data ||= fetch_data(meeting_attendance_data_url)
       end
 
