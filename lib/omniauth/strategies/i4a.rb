@@ -6,6 +6,7 @@ module OmniAuth
     class I4a < OmniAuth::Strategies::OAuth2
       option :client_options, {
         site: 'https://i4a.org',
+        meeting_groups: false,
         enable_credits: false,
         account_id: 'MUST BE SET',
         svu_account_id: 'MUST BE SET',
@@ -14,6 +15,7 @@ module OmniAuth
         user_info_url: '/i4a/api/json/view.ams_contactInformation_memberType',
         contact_type_url: '/i4a/api/json/view.ams_contactType_extended',
         meeting_info_url: '/i4a/api/json/view.custom_meeting_attendees_for_api',
+        meeting_groups_url: '/i4a/api/json/view.ams_tracking_invoice',
         username: 'MUST BE SET',
         password: 'MUST BE SET',
         authentication_token: '12345678-1234-1234-1234567890123456'
@@ -36,7 +38,8 @@ module OmniAuth
           'date_renewed' => user_data['daterenewed'],
           'paid_thru' => user_data['paidthru'],
           'contact_type_data' => contact_type_data,
-          'meeting_attendance_data' => meeting_attendance_data
+          'meeting_attendance_data' => meeting_attendance_data,
+          'meeting_groups_data' => meeting_groups_data
         }
         params.merge!(svu_custom_params) if svu_client?
         params
@@ -135,6 +138,18 @@ module OmniAuth
 
       def meeting_attendance_data_url
         "#{options.client_options.site}#{options.client_options.meeting_info_url}/contactid=#{member_id}/#{token}"
+      end
+
+
+      # Meeting Group related methods
+
+      def meeting_groups_data
+        return [] unless options.client_options.meeting_groups
+        @meeting_groups ||= fetch_data(meeting_groups_url)
+      end
+
+      def meeting_groups_url
+        "#{options.client_options.site}#{options.client_options.meeting_groups_url}/contactid=#{member_id}/#{token}"
       end
 
       # User related methods
