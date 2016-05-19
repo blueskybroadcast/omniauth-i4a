@@ -168,6 +168,8 @@ module OmniAuth
           user_data['paidthru'].downcase == 'null' ||
           !(Date.parse(user_data['paidthru']) >= (Date.today - 60.days))
         true
+        rescue
+          return false
       end
 
       def member_id
