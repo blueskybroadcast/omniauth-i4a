@@ -181,7 +181,7 @@ module OmniAuth
       end
 
       def svu_custom_params
-        { 'ardms_number' => user_data['c_user_ardms'], 'cci_number' => user_data['c_user_ardms'] }
+        { 'ardms_number' => user_data['c_user_ardms'], 'cci_number' => user_data['c_user_cci'] }
       end
     end
   end
