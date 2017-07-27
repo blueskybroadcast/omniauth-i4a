@@ -21,6 +21,8 @@ module OmniAuth
         authentication_token: '12345678-1234-1234-1234567890123456'
       }
 
+      option :app_options, { app_event_id: nil }
+
       uid { user_data['id'] }
 
       name { 'i4a' }
@@ -51,17 +53,26 @@ module OmniAuth
       end
 
       def callback_phase
-        if member_id
-          response = authenticate
-          if response.success?
-            self.access_token = { 'token' => JSON.parse(response.body)['authkey'] }
-            self.env['omniauth.auth'] = auth_hash
-            self.env['omniauth.origin'] = '/' + request.params['slug']
-            call_app!
-          else
-            fail!(:invalid_credentials)
-          end
+        return fail!(:invalid_credentials) unless member_id
+
+        @app_event = prepare_app_event
+        response = authenticate
+        response_log = "#{provider_name} Authentication Response (code: #{response.code}): \n#{response.body}"
+
+        if response.success?
+          @app_event.logs.create(level: 'info', text: response_log)
+
+          self.access_token = { 'token' => JSON.parse(response.body)['authkey'] }
+          self.env['omniauth.auth'] = auth_hash
+          self.env['omniauth.origin'] = '/' + request.params['slug']
+          self.env['omniauth.app_event_id'] = @app_event.id
+          finalize_app_event
+
+          call_app!
         else
+          @app_event.logs.create(level: 'error', text: response_log)
+          @app_event.fail!
+
           fail!(:invalid_credentials)
         end
       end
@@ -77,10 +88,20 @@ module OmniAuth
 
       def fetch_data(url)
         response = Typhoeus.get url
+
+        request_log = "#{provider_name} Authentication Request:\nGET #{url}, params: { token: #{authentication_token} }"
+        response_log = "#{provider_name} Authentication Response (code: #{response.code}): \n#{response.body}"
+        @app_event.logs.create(level: 'info', text: request_log)
+
         if response.success?
+          @app_event.logs.create(level: 'info', text: response_log)
+
           data = JSON.parse response.body
-          flat_data = flatten_data data['COLUMNS'], data['DATA']
+          flatten_data(data['COLUMNS'], data['DATA'])
         else
+          @app_event.logs.create(level: 'error', text: response_log)
+          @app_event.fail!
+
           nil
         end
       end
@@ -182,6 +203,30 @@ module OmniAuth
 
       def svu_custom_params
         { 'ardms_number' => user_data['c_user_ardms'], 'cci_number' => user_data['c_user_cci'] }
+      end
+
+      # App Event methods
+
+      def provider_name
+        options.name
+      end
+
+      def prepare_app_event
+        account = Account.find(options.client_options.account_id)
+        account.app_events.where(id: options.app_options.app_event_id).first_or_create(activity_type: 'sso')
+      end
+
+      def finalize_app_event
+        app_event_data = {
+          user_info: {
+            uid: info['username'],
+            first_name: info['first_name'],
+            last_name: info['last_name'],
+            email: info['email']
+          }
+        }
+
+        @app_event.update(raw_data: app_event_data)
       end
     end
   end
