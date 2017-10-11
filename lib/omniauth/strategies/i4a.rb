@@ -87,11 +87,12 @@ module OmniAuth
       private
 
       def fetch_data(url)
-        response = Typhoeus.get url
-
-        request_log = "#{provider_name} Authentication Request:\nGET #{url}, params: { token: #{authentication_token} }"
-        response_log = "#{provider_name} Authentication Response (code: #{response.code}): \n#{response.body}"
+        request_log = "#{provider_name} Authentication Request:\nGET #{url}, params: { token: #{Provider::SECURITY_MASK} }"
         @app_event.logs.create(level: 'info', text: request_log)
+
+        response = Typhoeus.get url
+        response_log = "#{provider_name} Authentication Response (code: #{response.code}): \n#{response.body}"
+
 
         if response.success?
           @app_event.logs.create(level: 'info', text: response_log)
