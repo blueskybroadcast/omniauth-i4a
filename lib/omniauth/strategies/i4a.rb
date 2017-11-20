@@ -65,6 +65,7 @@ module OmniAuth
           self.access_token = { 'token' => JSON.parse(response.body)['authkey'] }
           self.env['omniauth.auth'] = auth_hash
           self.env['omniauth.origin'] = '/' + request.params['slug']
+          self.env['omniauth.redirect_url'] = request.params['redirecturl'].presence
           self.env['omniauth.app_event_id'] = @app_event.id
           finalize_app_event
 
