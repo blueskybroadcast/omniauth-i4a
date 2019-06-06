@@ -199,7 +199,7 @@ module OmniAuth
         return false if member_type.nil? ||
           member_type.downcase == 'null' ||
           membership_expiration.downcase == 'null' ||
-          !(Date.parse(expiration) >= (Date.today - 60.days))
+          (Date.parse(expiration) < (Date.today - 60.days))
         true
         rescue
           return false
