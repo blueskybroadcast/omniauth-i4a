@@ -150,7 +150,7 @@ module OmniAuth
 
       def contact_corp_type_data
         return [] unless options.client_options.enable_corp_member_type_sync
-        @contact_corp_type_data ||= fetch_data(contact_corp_type_data_url)
+        @contact_corp_type_data ||= fetch_data(contact_corp_type_data_url)[0]
       end
 
       def contact_type_data_url
