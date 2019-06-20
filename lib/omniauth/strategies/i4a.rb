@@ -26,9 +26,7 @@ module OmniAuth
       option :app_options, { app_event_id: nil }
 
       uid { user_data['id'] }
-
       name { 'i4a' }
-
       info do
         params = {
           'first_name' => user_data['firstname'],
@@ -50,7 +48,7 @@ module OmniAuth
       end
 
       def request_phase
-        slug = session['omniauth.params']['origin'].gsub(/\//,"")
+        slug = session['omniauth.params']['origin'].delete('/')
         redirect client.auth_code.authorize_url({:blueskyReturnUrl => callback_url + "?slug=#{slug}"})
       end
 
