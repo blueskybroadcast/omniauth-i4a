@@ -8,12 +8,14 @@ module OmniAuth
         site: 'https://i4a.org',
         meeting_groups: false,
         enable_credits: false,
+        enable_corp_member_type_sync: false,
         account_id: 'MUST BE SET',
         svu_account_id: 'MUST BE SET',
         authorize_url: '/custom/bluesky.cfm',
         authenticate_url: '/i4a/api/authenticate',
         user_info_url: '/i4a/api/json/view.ams_contactInformation_memberType',
         contact_type_url: '/i4a/api/json/view.ams_contactType_extended',
+        contact_corp_type_url: '/i4a/api/json/view.ams_contactInformation_corptype',
         meeting_info_url: '/i4a/api/json/view.custom_meeting_attendees_for_api',
         meeting_groups_url: '/i4a/api/json/view.ams_tracking_invoice',
         username: 'MUST BE SET',
@@ -24,9 +26,7 @@ module OmniAuth
       option :app_options, { app_event_id: nil }
 
       uid { user_data['id'] }
-
       name { 'i4a' }
-
       info do
         params = {
           'first_name' => user_data['firstname'],
@@ -34,7 +34,7 @@ module OmniAuth
           'email' => user_data['email'],
           'username' => user_data['id'],
           'is_active_member' => is_active_member,
-          'member_type' => user_data['membertype'],
+          'member_type' => member_type,
           'contact_id' => user_data['contactid'],
           'date_joined' => user_data['datejoined'],
           'date_renewed' => user_data['daterenewed'],
@@ -48,7 +48,7 @@ module OmniAuth
       end
 
       def request_phase
-        slug = session['omniauth.params']['origin'].gsub(/\//,"")
+        slug = session['omniauth.params']['origin'].delete('/')
         redirect client.auth_code.authorize_url({:blueskyReturnUrl => callback_url + "?slug=#{slug}"})
       end
 
@@ -148,8 +148,17 @@ module OmniAuth
         @contact_type_data ||= fetch_data(contact_type_data_url)
       end
 
+      def contact_corp_type_data
+        return [] unless options.client_options.enable_corp_member_type_sync
+        @contact_corp_type_data ||= fetch_data(contact_corp_type_data_url)[0]
+      end
+
       def contact_type_data_url
         "#{options.client_options.site}#{options.client_options.contact_type_url}/contactid=#{member_id}/#{token}"
+      end
+
+      def contact_corp_type_data_url
+        "#{options.client_options.site}#{options.client_options.contact_corp_type_url}/contactid=#{member_id}/#{token}"
       end
 
       # Meeting Attendance related methods
@@ -162,7 +171,6 @@ module OmniAuth
       def meeting_attendance_data_url
         "#{options.client_options.site}#{options.client_options.meeting_info_url}/contactid=#{member_id}/#{token}"
       end
-
 
       # Meeting Group related methods
 
@@ -186,13 +194,29 @@ module OmniAuth
       end
 
       def is_active_member
-        return false if user_data['membertype'].nil? ||
-          user_data['membertype'].downcase == 'null' ||
-          user_data['paidthru'].downcase == 'null' ||
-          !(Date.parse(user_data['paidthru']) >= (Date.today - 60.days))
+        return false if member_type.nil? ||
+          member_type.downcase == 'null' ||
+          membership_expiration.downcase == 'null' ||
+          (Date.parse(expiration) < (Date.today - 60.days))
         true
         rescue
           return false
+      end
+
+      def member_type
+        @member_type ||= if options.client_options.enable_corp_member_type_sync
+          contact_corp_type_data['corptype']
+        else
+          user_data['membertype']
+        end
+      end
+
+      def membership_expiration
+        @membership_expiration ||= if options.client_options.enable_corp_member_type_sync
+          contact_corp_type_data['corpexpiration']
+        else
+          user_data['paidthru']
+        end
       end
 
       def member_id
